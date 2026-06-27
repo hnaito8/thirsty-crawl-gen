@@ -76,6 +76,81 @@ Mood/vibe: ${mood}
 Design a 2-4 stop bar crawl that matches the mood and budget, starting near the given location at the given time. For each stop, invent a plausible bar name and a real-sounding street address near the starting location (do not fabricate GPS coordinates), a recommended drink with a short explanation tying it to the vibe, and a fun, low-effort social quest the group can complete there with a point reward. Also write 2-3 short Instagram-story-style frames (header, caption, an emoji sticker idea, and a Tailwind gradient class like "from-cyan-900 to-blue-950") recapping the night. budgetLevel should be one of "$", "$$", "$$$", "$$$$" matching the requested budget. Respond with JSON only, matching the provided schema.`;
 }
 
+const BUDGET_LEVELS = ["$", "$$", "$$$", "$$$$"];
+
+function normalizeBudgetLevel(budget: string): string {
+  return BUDGET_LEVELS.includes(budget) ? budget : "$$";
+}
+
+function buildMockItinerary({ location, time, budget, mood }: PlannerInput): Itinerary {
+  const budgetLevel = normalizeBudgetLevel(budget);
+  return {
+    title: `${mood} Night in ${location}`,
+    vibeSummary: `A ${budgetLevel} ${mood.toLowerCase()} crawl kicking off near ${location} at ${time}. (Demo data — no GEMINI_API_KEY set.)`,
+    totalDurationMin: 180,
+    budgetLevel,
+    vibe: mood,
+    itinerary: [
+      {
+        barName: "The Velvet Hour",
+        address: `1-2-3 ${location}`,
+        arrivalOffsetMin: 0,
+        durationMin: 60,
+        recommendedOrder: {
+          drinkName: "Smoked Old Fashioned",
+          vibeExplanation: `Eases the crew into the ${mood.toLowerCase()} mood with a slow-burn classic.`,
+        },
+        quest: { task: "Get the bartender to share their go-to off-menu order", rewardPoints: 10 },
+      },
+      {
+        barName: "Neon Alley",
+        address: `4-5-6 ${location}`,
+        arrivalOffsetMin: 70,
+        durationMin: 60,
+        recommendedOrder: {
+          drinkName: "Yuzu Highball",
+          vibeExplanation: "A bright, fizzy palate reset for the second stop.",
+        },
+        quest: { task: "Take a group photo under the neon sign", rewardPoints: 15 },
+      },
+      {
+        barName: "Rooftop Hideout",
+        address: `7-8-9 ${location}`,
+        arrivalOffsetMin: 140,
+        durationMin: 40,
+        recommendedOrder: {
+          drinkName: "Sakura Sour",
+          vibeExplanation: "A celebratory close-out drink with a view.",
+        },
+        quest: { task: "Toast the night and tag the next bar you'll hit", rewardPoints: 10 },
+      },
+    ],
+    storyFrames: [
+      {
+        frameNumber: 1,
+        headerText: "It begins...",
+        caption: `Kicking off a ${mood.toLowerCase()} night near ${location} 🍸`,
+        stickerIdea: "🍸",
+        bgGradient: "from-cyan-900 to-blue-950",
+      },
+      {
+        frameNumber: 2,
+        headerText: "Stop 2: Neon Alley",
+        caption: "Highballs and neon lights ✨",
+        stickerIdea: "✨",
+        bgGradient: "from-fuchsia-900 to-purple-950",
+      },
+      {
+        frameNumber: 3,
+        headerText: "Last call",
+        caption: "Toasting to a night well spent 🌙",
+        stickerIdea: "🌙",
+        bgGradient: "from-amber-900 to-rose-950",
+      },
+    ],
+  };
+}
+
 function assertIsItinerary(value: unknown): Itinerary {
   if (
     !value ||
@@ -91,7 +166,8 @@ function assertIsItinerary(value: unknown): Itinerary {
 export async function generateItinerary(input: PlannerInput): Promise<Itinerary> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    throw new Error("GEMINI_API_KEY is not set");
+    console.warn("GEMINI_API_KEY is not set — returning mock itinerary");
+    return buildMockItinerary(input);
   }
 
   const ai = new GoogleGenAI({ apiKey });

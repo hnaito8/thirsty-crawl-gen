@@ -49,6 +49,18 @@ Write a short, punchy Instagram-ready recap with:
 Respond with JSON only, matching the provided schema.`;
 }
 
+function buildMockStoryCard({ itinerary, visitedPlaces }: StoryCardInput): StoryCard {
+  const places = visitedPlaces.length > 0 ? visitedPlaces : itinerary.itinerary.map((bar) => bar.barName);
+  const hashtag = `#${itinerary.vibe.replace(/\s+/g, "")}`;
+
+  return {
+    title: `${itinerary.vibe} Recap`,
+    subtitle: `${places.length} stops, one unforgettable night`,
+    caption: `We hit up ${places.join(", ")} and turned "${itinerary.title}" into a night to remember 🍸 (Demo data — no GEMINI_API_KEY set.)`,
+    hashtags: [hashtag, "#nightlife", "#barcrawl", "#instagood", "#nightout"],
+  };
+}
+
 function assertIsStoryCard(value: unknown): StoryCard {
   const card = value as StoryCard;
   if (
@@ -67,7 +79,8 @@ function assertIsStoryCard(value: unknown): StoryCard {
 export async function generateStoryCard(input: StoryCardInput): Promise<StoryCard> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    throw new Error("GEMINI_API_KEY is not set");
+    console.warn("GEMINI_API_KEY is not set — returning mock story card");
+    return buildMockStoryCard(input);
   }
 
   const ai = new GoogleGenAI({ apiKey });
