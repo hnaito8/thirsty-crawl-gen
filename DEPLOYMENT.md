@@ -48,10 +48,12 @@ gcloud secrets add-iam-policy-binding GEMINI_API_KEY \
 ## 3. Create an Artifact Registry repository
 
 ```bash
-gcloud artifacts repositories create thirsty-app \
+gcloud artifacts repositories create cloud-run-source-deploy \
   --repository-format=docker \
-  --location=us-central1
+  --location=asia-northeast1
 ```
+
+(If you previously deployed with `gcloud run deploy --source`, this repository was already created for you — the command above will just report that it exists.)
 
 Using a different region or repo name? Update the `_REGION` / `_REPOSITORY` substitutions in [`cloudbuild.yaml`](cloudbuild.yaml) and the `serviceId`/`region` in [`firebase.json`](firebase.json) to match.
 
@@ -63,12 +65,12 @@ The easiest path is to let Cloud Build do everything — build the image, push i
 gcloud builds submit --config cloudbuild.yaml .
 ```
 
-This builds the [`Dockerfile`](Dockerfile), pushes it to Artifact Registry, and runs `gcloud run deploy` with the `GEMINI_API_KEY` secret wired in. The first deploy creates the `thirsty-app` Cloud Run service in `us-central1`; later runs of the same command redeploy a new revision.
+This builds the [`Dockerfile`](Dockerfile), pushes it to Artifact Registry, and runs `gcloud run deploy` with the `GEMINI_API_KEY` secret wired in. The first deploy creates the `thirsty-crawl-gen` Cloud Run service in `asia-northeast1`; later runs of the same command redeploy a new revision.
 
 Once it finishes, grab the URL:
 
 ```bash
-gcloud run services describe thirsty-app --region=us-central1 --format='value(status.url)'
+gcloud run services describe thirsty-crawl-gen --region=asia-northeast1 --format='value(status.url)'
 ```
 
 ### Alternative: deploy directly from source (no Dockerfile build step locally)
@@ -76,9 +78,9 @@ gcloud run services describe thirsty-app --region=us-central1 --format='value(st
 For quick iteration you can skip `cloudbuild.yaml` entirely and let Cloud Run build from source:
 
 ```bash
-gcloud run deploy thirsty-app \
+gcloud run deploy thirsty-crawl-gen \
   --source . \
-  --region=us-central1 \
+  --region=asia-northeast1 \
   --allow-unauthenticated \
   --set-secrets=GEMINI_API_KEY=GEMINI_API_KEY:latest
 ```
@@ -100,7 +102,7 @@ firebase login
 firebase use --add   # pick your GCP project, or edit .firebaserc directly
 ```
 
-Update `.firebaserc` with your actual project ID, and confirm `firebase.json`'s `rewrites[0].run.serviceId`/`region` match the Cloud Run service you deployed in step 4 (defaults: `thirsty-app` / `us-central1`). Then:
+Update `.firebaserc` with your actual project ID, and confirm `firebase.json`'s `rewrites[0].run.serviceId`/`region` match the Cloud Run service you deployed in step 4 (defaults: `thirsty-crawl-gen` / `asia-northeast1`). Then:
 
 ```bash
 firebase deploy --only hosting

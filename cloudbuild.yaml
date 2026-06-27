@@ -1,7 +1,7 @@
 substitutions:
-  _REGION: us-central1
-  _REPOSITORY: thirsty-app
-  _SERVICE_NAME: thirsty-app
+  _REGION: asia-northeast1
+  _REPOSITORY: cloud-run-source-deploy
+  _SERVICE_NAME: thirsty-crawl-gen
 
 steps:
   - name: "gcr.io/cloud-builders/docker"

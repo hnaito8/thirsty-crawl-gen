@@ -6,8 +6,8 @@
       {
         "source": "**",
         "run": {
-          "serviceId": "thirsty-app",
-          "region": "us-central1"
+          "serviceId": "thirsty-crawl-gen",
+          "region": "asia-northeast1"
         }
       }
     ]
